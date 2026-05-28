@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/charmbracelet/huh"
 	"github.com/spf13/cobra"
 )
 
@@ -22,9 +23,24 @@ func run(cmd *cobra.Command, args []string) error {
 		fmt.Println("no drives available")
 		return nil
 	}
-	for _, d := range drives {
-		fmt.Printf("%s  %s  %d bytes\n", d.Path, d.Label, d.Size)
+
+	options := make([]huh.Option[string], len(drives))
+	for i, d := range drives {
+		label := fmt.Sprintf("%s — %s — %.1f GB", d.Label, d.Path, float64(d.Size)/1e9)
+		options[i] = huh.NewOption(label, d.Path)
 	}
+
+	var target string
+	err = huh.NewSelect[string]().
+		Title("Select a drive").
+		Options(options...).
+		Value(&target).
+		Run()
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("target:", target)
 	return nil
 }
 
