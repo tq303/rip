@@ -2,17 +2,9 @@ package main
 
 import (
 	"fmt"
-	"runtime"
 
 	"github.com/spf13/cobra"
 )
-
-type Drive struct {
-	Name  string
-	Path  string
-	Size  uint64
-	Label string
-}
 
 var rootCmd = &cobra.Command{
 	Use:   "rip [image]",
@@ -22,10 +14,23 @@ var rootCmd = &cobra.Command{
 }
 
 func run(cmd *cobra.Command, args []string) error {
-	fmt.Println("platform:", runtime.GOOS)
+	drives, err := listDrives()
+	if err != nil {
+		return err
+	}
+	if len(drives) == 0 {
+		fmt.Println("no drives available")
+		return nil
+	}
+	for _, d := range drives {
+		fmt.Printf("%s  %s  %d bytes\n", d.Path, d.Label, d.Size)
+	}
 	return nil
 }
 
 func main() {
-	rootCmd.Execute()
+	err := rootCmd.Execute()
+	if err != nil {
+		fmt.Println(err)
+	}
 }
