@@ -145,6 +145,10 @@ func parseMacPlist(data []byte) ([]Drive, error) {
 	return drives, nil
 }
 
+func unmountDisk(name string) error {
+	return exec.Command("diskutil", "unmountDisk", name).Run()
+}
+
 func listDrivesLinux() ([]Drive, error) {
 	_, err := exec.Command("lsblk", "-J", "-o", "NAME,SIZE,TYPE,TRAN,RM").Output()
 	if err != nil {
