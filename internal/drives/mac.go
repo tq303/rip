@@ -1,54 +1,36 @@
-package main
+package drives
 
 import (
 	"bytes"
 	"encoding/xml"
-	"fmt"
 	"os/exec"
-	"runtime"
 	"strconv"
 	"strings"
 )
 
-type Drive struct {
-	Name  string
-	Path  string
-	Size  uint64
-	Label string
-}
-
-func listDrives() ([]Drive, error) {
-	switch runtime.GOOS {
-	case "darwin":
-		return listDrivesMac()
-	case "linux":
-		return listDrivesLinux()
-	case "windows":
-		return listDrivesWindows()
-	default:
-		return nil, fmt.Errorf("unsupported platform: %s", runtime.GOOS)
-	}
-}
-
-func listDrivesMac() ([]Drive, error) {
+func listMac() ([]Drive, error) {
 	out, err := exec.Command("diskutil", "list", "-plist", "external").Output()
 	if err != nil {
 		return nil, nil
 	}
-	drives, err := parseMacPlist(out)
+	drives, err := parsePlist(out)
 	if err != nil {
 		return nil, err
 	}
 	for i, d := range drives {
 		info, err := exec.Command("diskutil", "info", "-plist", d.Name).Output()
 		if err == nil {
-			drives[i].Label = parseMacMediaName(info)
+			drives[i].Label = parseMediaName(info)
 		}
 	}
 	return drives, nil
 }
 
-func parseMacMediaName(data []byte) string {
+func UnmountMacOs(name string) error {
+	return exec.Command("diskutil", "unmountDisk", name).Run()
+}
+
+func parseMediaName(data []byte) string {
 	dec := xml.NewDecoder(bytes.NewReader(data))
 	var currentElement, lastKey string
 	for {
@@ -76,10 +58,10 @@ func parseMacMediaName(data []byte) string {
 	return ""
 }
 
-func parseMacPlist(data []byte) ([]Drive, error) {
+func parsePlist(data []byte) ([]Drive, error) {
 	dec := xml.NewDecoder(bytes.NewReader(data))
 
-	var drives []Drive
+	var result []Drive
 	var currentKey, currentElement string
 	var inTarget, inTopDict bool
 	var current Drive
@@ -105,8 +87,8 @@ func parseMacPlist(data []byte) ([]Drive, error) {
 			}
 		case xml.EndElement:
 			if inTopDict && t.Name.Local == "dict" && depth == dictDepth {
-				if current.Name != "" {
-					drives = append(drives, current)
+				if current.Name != "" && current.Size > 1024*1024 {
+					result = append(result, current)
 				}
 				inTopDict = false
 			}
@@ -142,25 +124,5 @@ func parseMacPlist(data []byte) ([]Drive, error) {
 			}
 		}
 	}
-	return drives, nil
-}
-
-func unmountDisk(name string) error {
-	return exec.Command("diskutil", "unmountDisk", name).Run()
-}
-
-func listDrivesLinux() ([]Drive, error) {
-	_, err := exec.Command("lsblk", "-J", "-o", "NAME,SIZE,TYPE,TRAN,RM").Output()
-	if err != nil {
-		return nil, err
-	}
-	return nil, nil
-}
-
-func listDrivesWindows() ([]Drive, error) {
-	_, err := exec.Command("powershell", "-Command", "Get-Disk | Select-Object Number,FriendlyName,Size,BusType | ConvertTo-Json").Output()
-	if err != nil {
-		return nil, err
-	}
-	return nil, nil
+	return result, nil
 }
