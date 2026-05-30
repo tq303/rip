@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"strings"
 
 	"github.com/charmbracelet/huh"
 	"github.com/spf13/cobra"
@@ -19,6 +20,21 @@ var rootCmd = &cobra.Command{
 
 func run(cmd *cobra.Command, args []string) error {
 	image := args[0]
+
+	if strings.HasPrefix(image, "http") {
+		outputFolder, err := cmd.Flags().GetString("output")
+		if err != nil {
+			return err
+		}
+
+		tempFile, err := downloadUrl(image, outputFolder)
+		if err != nil {
+			return err
+		}
+
+		image = tempFile
+	}
+
 	info, err := os.Stat(image)
 	if err != nil {
 		return err
@@ -78,6 +94,8 @@ func run(cmd *cobra.Command, args []string) error {
 
 func main() {
 	rootCmd.Flags().IntP("buffer", "b", 4, "Set write buffer size in MB")
+	rootCmd.Flags().StringP("output", "o", "", "Set output folder for download")
+
 	err := rootCmd.Execute()
 	if err != nil {
 		fmt.Println(err)
