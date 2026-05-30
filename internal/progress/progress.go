@@ -1,6 +1,10 @@
 package progress
 
-import "github.com/schollz/progressbar/v3"
+import (
+	"time"
+
+	"github.com/schollz/progressbar/v3"
+)
 
 func Bar(label string, size int64) *progressbar.ProgressBar {
 	return progressbar.NewOptions64(
@@ -9,5 +13,6 @@ func Bar(label string, size int64) *progressbar.ProgressBar {
 		progressbar.OptionSetDescription(label),
 		progressbar.OptionShowBytes(true),
 		progressbar.OptionShowCount(),
+		progressbar.OptionThrottle(100*time.Millisecond),
 	)
 }

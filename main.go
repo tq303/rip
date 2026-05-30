@@ -6,6 +6,8 @@ import (
 	"runtime"
 	"strings"
 
+	"time"
+
 	"github.com/charmbracelet/huh"
 	"github.com/spf13/cobra"
 	"github.com/tq303/rip/internal/drives"
@@ -19,6 +21,7 @@ var rootCmd = &cobra.Command{
 }
 
 func run(cmd *cobra.Command, args []string) error {
+	start := time.Now()
 	image := args[0]
 
 	if strings.HasPrefix(image, "http") {
@@ -89,7 +92,11 @@ func run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	return drives.Write(image, target.Path, buffer)
+	if err := drives.Write(image, target.Path, buffer); err != nil {
+		return err
+	}
+	fmt.Printf("Total time: %s\n", time.Since(start).Round(time.Second))
+	return nil
 }
 
 func main() {

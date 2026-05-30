@@ -81,8 +81,7 @@ func downloadUrl(url string, outputFolder string) (string, error) {
 	}
 
 	bar.Close()
-
-	fmt.Printf("Downloaded in %s\n\n", time.Since(start).Round(time.Second))
+	fmt.Printf("\nDownloaded in %s\n\n", time.Since(start).Round(time.Second))
 
 	changeFileOwner(saveFile.Name())
 
