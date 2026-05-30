@@ -1,4 +1,4 @@
-package download
+package main
 
 import (
 	"fmt"
@@ -23,7 +23,7 @@ func changeFileOwner(fileName string) {
 	}
 }
 
-func Url(url string, outputFolder string) (string, error) {
+func downloadUrl(url string, outputFolder string) (string, error) {
 	headReq, err := http.NewRequestWithContext(state.Get(), "HEAD", url, nil)
 	if err != nil {
 		return "", err
@@ -64,7 +64,7 @@ func Url(url string, outputFolder string) (string, error) {
 
 	fmt.Printf("Downloading %s\n", fileName)
 
-	if err := os.MkdirAll(outputFolder, 0755); err != nil {
+	if err := os.MkdirAll("/tmp/rip", 0755); err != nil {
 		return "", err
 	}
 	saveFile, err := os.Create(destination)
@@ -86,4 +86,21 @@ func Url(url string, outputFolder string) (string, error) {
 	changeFileOwner(saveFile.Name())
 
 	return saveFile.Name(), err
+}
+
+func getReleases(url string) (string, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("HTTP %d fetching %s", resp.StatusCode, url)
+	}
+
+	// get all links
+	// list all avaiable
+
+	return "", nil
 }

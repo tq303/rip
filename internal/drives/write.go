@@ -23,7 +23,7 @@ func Write(image string, target string, megaBytes int) error {
 	defer file.Close()
 
 	start := time.Now()
-	bar := progress.Bar("buffering", info.Size())
+	bar := progress.Bar("b:", info.Size())
 
 	destination, err := os.OpenFile(target, os.O_WRONLY, 0)
 	if err != nil {
@@ -33,14 +33,23 @@ func Write(image string, target string, megaBytes int) error {
 
 	buffer := make([]byte, megaBytes*1024*1024)
 
-	if state.Get().Err() != nil {
-		fmt.Println("\nwarning: write was interrupted - drive maybe corrupted")
-		os.Exit(1)
-	}
-
-	_, err = io.CopyBuffer(io.MultiWriter(destination, bar), file, buffer)
-	if err != nil {
-		return err
+	for {
+		if state.Get().Err() != nil {
+			fmt.Println("\nwarning: write was interrupted - drive maybe corrupted")
+			os.Exit(1)
+		}
+		n, readErr := file.Read(buffer)
+		if n > 0 {
+			if _, writeErr := io.MultiWriter(destination, bar).Write(buffer[:n]); writeErr != nil {
+				return writeErr
+			}
+		}
+		if readErr == io.EOF {
+			break
+		}
+		if readErr != nil {
+			return readErr
+		}
 	}
 
 	bar.Close()
