@@ -22,8 +22,8 @@ func Write(image string, target string, megaBytes int) error {
 	}
 	defer file.Close()
 
-	fmt.Printf("Writing image %s\n", image)
-	progress := progressbar.DefaultBytes(info.Size())
+	start := time.Now()
+	progress := progressbar.DefaultBytes(info.Size(), "buffering")
 
 	destination, err := os.OpenFile(target, os.O_WRONLY, 0)
 	if err != nil {
@@ -44,8 +44,7 @@ func Write(image string, target string, megaBytes int) error {
 	}
 
 	progress.Close()
-	fmt.Print("\nSyncing...")
-	start := time.Now()
+	fmt.Print("\nWriting...")
 	destination.Sync()
 	fmt.Printf(" done in %s\n", time.Since(start).Round(time.Second))
 
