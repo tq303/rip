@@ -11,7 +11,7 @@ Cross-platform CLI for flashing images to drives.
 **macOS / Linux**
 
 ```bash
-curl -sL https://raw.githubusercontent.com/tq303/rip/main/install.sh | sh
+curl -sL https://raw.githubusercontent.com/tq303/rip/main/scripts/install.sh | sh
 ```
 
 **Go**
