@@ -6,9 +6,21 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"strconv"
+	"time"
 
 	"github.com/schollz/progressbar/v3"
 )
+
+func changeFileOwner(fileName string) {
+	if uid := os.Getenv("SUDO_UID"); uid != "" {
+		if gid := os.Getenv("SUDO_GID"); gid != "" {
+			u, _ := strconv.Atoi(uid)
+			g, _ := strconv.Atoi(gid)
+			os.Chown(fileName, u, g)
+		}
+	}
+}
 
 func downloadUrl(url string, outputFolder string) (string, error) {
 	head, err := http.Head(url)
@@ -26,11 +38,12 @@ func downloadUrl(url string, outputFolder string) (string, error) {
 
 	destination := path.Join(outputFolder, fileName)
 
-	if out, err := os.Stat(destination); err == nil && out.Size() == head.ContentLength {
-		fmt.Printf("Using cached %s\n", destination)
+	if localFile, err := os.Stat(destination); err == nil && localFile.Size() == head.ContentLength {
+		fmt.Printf("Using cached %s\n\n", destination)
 		return destination, nil
 	}
 
+	start := time.Now()
 	resp, err := http.Get(url)
 	if err != nil {
 		return "", err
@@ -46,23 +59,26 @@ func downloadUrl(url string, outputFolder string) (string, error) {
 	if err := os.MkdirAll("/tmp/rip", 0755); err != nil {
 		return "", err
 	}
-	out, err := os.Create(destination)
+	saveFile, err := os.Create(destination)
 	if err != nil {
 		return "", err
 	}
-	defer out.Close()
+	defer saveFile.Close()
 
-	progress := progressbar.New64(resp.ContentLength)
+	progress := progressbar.DefaultBytes(resp.ContentLength)
 
-	_, err = io.Copy(out, io.TeeReader(resp.Body, progress))
+	_, err = io.Copy(saveFile, io.TeeReader(resp.Body, progress))
 	if err != nil {
-		os.Remove(out.Name())
+		os.Remove(saveFile.Name())
 	}
 
 	progress.Close()
-	fmt.Printf("\nComplete %s\n", destination)
 
-	return out.Name(), err
+	fmt.Printf("Downloaded in %s\n\n", time.Since(start).Round(time.Second))
+
+	changeFileOwner(saveFile.Name())
+
+	return saveFile.Name(), err
 }
 
 func getReleases(url string) (string, error) {

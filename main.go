@@ -19,6 +19,10 @@ var rootCmd = &cobra.Command{
 }
 
 func run(cmd *cobra.Command, args []string) error {
+	if os.Getuid() != 0 {
+		return fmt.Errorf("must be run as root")
+	}
+
 	image := args[0]
 
 	if strings.HasPrefix(image, "http") {

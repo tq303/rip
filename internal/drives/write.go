@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/signal"
 	"time"
 
 	"github.com/schollz/progressbar/v3"
+	"github.com/tq303/rip/internal/state"
 )
 
-func Write(image string, target string, mb int) error {
+func Write(image string, target string, megaBytes int) error {
 	info, err := os.Stat(image)
 	if err != nil {
 		return err
@@ -22,6 +22,7 @@ func Write(image string, target string, mb int) error {
 	}
 	defer file.Close()
 
+	fmt.Printf("Writing image %s\n", image)
 	start := time.Now()
 	progress := progressbar.DefaultBytes(info.Size())
 
@@ -31,22 +32,21 @@ func Write(image string, target string, mb int) error {
 	}
 	defer destination.Close()
 
-	buffer := make([]byte, mb*1024*1024)
+	buffer := make([]byte, megaBytes*1024*1024)
 
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
-	go func() {
-		<-c
+	if state.Get().Err() != nil {
 		fmt.Println("\nwarning: write was interrupted - drive maybe corrupted")
 		os.Exit(1)
-	}()
+	}
 
 	_, err = io.CopyBuffer(io.MultiWriter(destination, progress), file, buffer)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("\nwritten in %s\n", time.Since(start).Round(time.Second))
+	progress.Close()
+
+	fmt.Printf("\nImage written in %s\n", time.Since(start).Round(time.Second))
 
 	destination.Sync()
 
