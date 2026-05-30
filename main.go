@@ -5,17 +5,18 @@ import (
 	"os"
 	"runtime"
 	"strings"
-
 	"time"
 
 	"github.com/charmbracelet/huh"
 	"github.com/spf13/cobra"
+	"github.com/tq303/rip/internal/download"
 	"github.com/tq303/rip/internal/drives"
+	"github.com/tq303/rip/internal/permissions"
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "rip [image]",
-	Short: "Flash an OS image to a drive",
+	Use:   "rip [image] [flags]",
+	Short: "Flash an image to a drive",
 	Args:  cobra.ExactArgs(1),
 	RunE:  run,
 }
@@ -30,7 +31,7 @@ func run(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
-		tempFile, err := downloadUrl(image, outputFolder)
+		tempFile, err := download.Url(image, outputFolder)
 		if err != nil {
 			return err
 		}
@@ -68,14 +69,14 @@ func run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	override, err := cmd.Flags().GetBool("confirm")
+	force, err := cmd.Flags().GetBool("force")
 	if err != nil {
 		return err
 	}
 
 	var confirm bool
 
-	if !override {
+	if !force {
 		err = huh.NewConfirm().
 			Title(fmt.Sprintf("Flash %s (%.1f GB) to %s (%.1f GB)?", image, float64(info.Size())/1e9, target.Label, float64(target.Size)/1e9)).
 			Description("This will erase all data on the drive.").
@@ -85,7 +86,7 @@ func run(cmd *cobra.Command, args []string) error {
 			return err
 		}
 	} else {
-		confirm = override
+		confirm = force
 	}
 
 	if !confirm {
@@ -111,10 +112,10 @@ func run(cmd *cobra.Command, args []string) error {
 }
 
 func main() {
-	ensureRoot()
+	permissions.EnsureRoot()
 	rootCmd.Flags().IntP("buffer", "b", 4, "Set write buffer size in MB")
-	rootCmd.Flags().StringP("output", "o", "", "Set output folder for download")
-	rootCmd.Flags().BoolP("force", "f", false, "Skip confirmation")
+	rootCmd.Flags().StringP("output", "o", "", "Set download folder for URLs")
+	rootCmd.Flags().BoolP("force", "f", false, "Skip confirmation prompt")
 
 	err := rootCmd.Execute()
 	if err != nil {

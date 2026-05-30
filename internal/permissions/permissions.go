@@ -1,4 +1,4 @@
-package main
+package permissions
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"runtime"
 )
 
-func ensureRoot() {
+func EnsureRoot() {
 	if os.Getuid() == 0 {
 		return
 	}
