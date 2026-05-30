@@ -68,15 +68,26 @@ func run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	var confirm bool
-	err = huh.NewConfirm().
-		Title(fmt.Sprintf("Flash %s (%.1f GB) to %s (%.1f GB)?", image, float64(info.Size())/1e9, target.Label, float64(target.Size)/1e9)).
-		Description("This will erase all data on the drive.").
-		Value(&confirm).
-		Run()
+	override, err := cmd.Flags().GetBool("confirm")
 	if err != nil {
 		return err
 	}
+
+	var confirm bool
+
+	if !override {
+		err = huh.NewConfirm().
+			Title(fmt.Sprintf("Flash %s (%.1f GB) to %s (%.1f GB)?", image, float64(info.Size())/1e9, target.Label, float64(target.Size)/1e9)).
+			Description("This will erase all data on the drive.").
+			Value(&confirm).
+			Run()
+		if err != nil {
+			return err
+		}
+	} else {
+		confirm = override
+	}
+
 	if !confirm {
 		return nil
 	}
@@ -103,6 +114,7 @@ func main() {
 	ensureRoot()
 	rootCmd.Flags().IntP("buffer", "b", 4, "Set write buffer size in MB")
 	rootCmd.Flags().StringP("output", "o", "", "Set output folder for download")
+	rootCmd.Flags().BoolP("force", "f", false, "Skip confirmation")
 
 	err := rootCmd.Execute()
 	if err != nil {
