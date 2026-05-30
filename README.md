@@ -8,22 +8,10 @@ Cross-platform CLI for flashing images to drives.
 
 ## Install
 
-**macOS (Apple Silicon)**
+**macOS / Linux**
 
 ```bash
-curl -L https://github.com/tq303/rip/releases/latest/download/rip-darwin-arm64 -o /usr/local/bin/rip && chmod +x /usr/local/bin/rip
-```
-
-**macOS (Intel)**
-
-```bash
-curl -L https://github.com/tq303/rip/releases/latest/download/rip-darwin-amd64 -o /usr/local/bin/rip && chmod +x /usr/local/bin/rip
-```
-
-**Linux**
-
-```bash
-curl -L https://github.com/tq303/rip/releases/latest/download/rip-linux-amd64 -o /usr/local/bin/rip && chmod +x /usr/local/bin/rip
+curl -sL https://raw.githubusercontent.com/tq303/rip/main/install.sh | sh
 ```
 
 **Go**
