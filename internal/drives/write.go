@@ -45,10 +45,9 @@ func Write(image string, target string, megaBytes int) error {
 	}
 
 	progress.Close()
+	destination.Sync()
 
 	fmt.Printf("\nImage written in %s\n", time.Since(start).Round(time.Second))
-
-	destination.Sync()
 
 	return nil
 }

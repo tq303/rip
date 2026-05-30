@@ -1,7 +1,7 @@
 .PHONY: install build clean release
 
 install:
-	go build -o /usr/local/bin/rip .
+	go install .
 
 build:
 	go build -o rip .

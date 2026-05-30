@@ -19,10 +19,6 @@ var rootCmd = &cobra.Command{
 }
 
 func run(cmd *cobra.Command, args []string) error {
-	if os.Getuid() != 0 {
-		return fmt.Errorf("must be run as root")
-	}
-
 	image := args[0]
 
 	if strings.HasPrefix(image, "http") {
@@ -97,6 +93,7 @@ func run(cmd *cobra.Command, args []string) error {
 }
 
 func main() {
+	ensureRoot()
 	rootCmd.Flags().IntP("buffer", "b", 4, "Set write buffer size in MB")
 	rootCmd.Flags().StringP("output", "o", "", "Set output folder for download")
 
