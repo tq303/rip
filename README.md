@@ -16,6 +16,12 @@ Cross-platform CLI for flashing images to drives.
 curl -sL https://raw.githubusercontent.com/tq303/rip/main/scripts/install.sh | sh
 ```
 
+**Windows** (run as administrator)
+
+```bat
+curl -sL https://raw.githubusercontent.com/tq303/rip/main/scripts/install.bat -o install.bat && install.bat
+```
+
 **Go**
 
 ```bash
@@ -53,4 +59,4 @@ rip https://example.com/image.iso --output ~/Downloads
 | ---------------- | ------- | ----------------------- |
 | `-b`, `--buffer` | `4`        | Write buffer size in MB |
 | `-f`, `--force`  |            | Skip confirmation prompt |
-| `-o`, `--output` | `/tmp/rip` | Download folder for URLs |
+| `-o`, `--output` | system temp | Download folder for URLs |
