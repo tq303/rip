@@ -102,7 +102,9 @@ func run(cmd *cobra.Command, args []string) error {
 	}
 
 	if runtime.GOOS == "windows" {
-		return fmt.Errorf("windows write not yet implemented")
+		if err := drives.UnmountWindows(target.Path); err != nil {
+			return err
+		}
 	}
 
 	buffer, err := cmd.Flags().GetInt("buffer")

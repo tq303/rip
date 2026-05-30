@@ -1,9 +1,14 @@
+//go:build windows
+
 package drives
 
 import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
+	"strings"
+
+	"golang.org/x/sys/windows"
 )
 
 type winDisk struct {
@@ -42,4 +47,42 @@ func listWindows() ([]Drive, error) {
 		})
 	}
 	return result, nil
+}
+
+const (
+	fsctlLockVolume     = 0x00090018
+	fsctlDismountVolume = 0x00090020
+)
+
+func UnmountWindows(path string) error {
+	numStr := strings.TrimPrefix(path, `\\.\PhysicalDrive`)
+	out, err := exec.Command("powershell", "-Command",
+		fmt.Sprintf("Get-Disk -Number %s | Get-Partition | Select-Object -ExpandProperty DriveLetter", numStr),
+	).Output()
+	if err != nil {
+		return nil
+	}
+
+	for _, letter := range strings.Fields(string(out)) {
+		volumePath := `\\.\` + letter + `:`
+		h, err := windows.CreateFile(
+			windows.StringToUTF16Ptr(volumePath),
+			windows.GENERIC_READ|windows.GENERIC_WRITE,
+			windows.FILE_SHARE_READ|windows.FILE_SHARE_WRITE,
+			nil,
+			windows.OPEN_EXISTING,
+			0,
+			0,
+		)
+		if err != nil {
+			continue
+		}
+		var n uint32
+		windows.DeviceIoControl(h, fsctlLockVolume, nil, 0, nil, 0, &n, nil)
+		windows.DeviceIoControl(h, fsctlDismountVolume, nil, 0, nil, 0, &n, nil)
+		// keep handle open until process exits — closing releases the lock
+		_ = h
+	}
+
+	return nil
 }
