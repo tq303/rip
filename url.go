@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/tq303/rip/internal/progress"
+	"github.com/tq303/rip/internal/state"
 )
 
 func changeFileOwner(fileName string) {
@@ -23,9 +24,12 @@ func changeFileOwner(fileName string) {
 }
 
 func downloadUrl(url string, outputFolder string) (string, error) {
-	head, err := http.Head(url)
+	headReq, err := http.NewRequestWithContext(state.Get(), "HEAD", url, nil)
 	if err != nil {
-		// TODO check "Content-Type: application/x-iso9660-image"?
+		return "", err
+	}
+	head, err := http.DefaultClient.Do(headReq)
+	if err != nil {
 		return "", err
 	}
 	defer head.Body.Close()
@@ -44,7 +48,11 @@ func downloadUrl(url string, outputFolder string) (string, error) {
 	}
 
 	start := time.Now()
-	resp, err := http.Get(url)
+	req, err := http.NewRequestWithContext(state.Get(), "GET", url, nil)
+	if err != nil {
+		return "", err
+	}
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return "", err
 	}
