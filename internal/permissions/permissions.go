@@ -1,7 +1,6 @@
 package permissions
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
 	"runtime"
@@ -12,8 +11,7 @@ func EnsureRoot() {
 		return
 	}
 	if runtime.GOOS == "windows" {
-		fmt.Fprintln(os.Stderr, "please re-run as administrator")
-		os.Exit(1)
+		return
 	}
 	bin, err := exec.LookPath(os.Args[0])
 	if err != nil {
