@@ -31,7 +31,7 @@ make install
 ## Usage
 
 ```bash
-rip [image]
+rip [image] [flags]
 ```
 
 Prompts you to select a drive, confirms before writing, then flashes the image. Accepts a local file or URL.
@@ -40,6 +40,7 @@ Prompts you to select a drive, confirms before writing, then flashes the image. 
 rip image.iso
 rip image.img --buffer 8
 rip https://example.com/image.iso
+rip https://example.com/image.iso --output ~/Downloads
 ```
 
 > Raw copy only — works for standard `.iso` and `.img` disk images. Does not handle images that require bootloader installation (e.g. Windows ISOs).
@@ -48,4 +49,6 @@ rip https://example.com/image.iso
 
 | Flag             | Default | Description             |
 | ---------------- | ------- | ----------------------- |
-| `-b`, `--buffer` | `4`     | Write buffer size in MB |
+| `-b`, `--buffer` | `4`        | Write buffer size in MB |
+| `-f`, `--force`  |            | Skip confirmation prompt |
+| `-o`, `--output` | `/tmp/rip` | Download folder for URLs |
