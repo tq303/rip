@@ -73,7 +73,7 @@ func Url(url string, outputFolder string) (string, error) {
 	}
 	defer saveFile.Close()
 
-	bar := progress.Bar("d:", resp.ContentLength)
+	bar := progress.Bar(resp.ContentLength)
 
 	_, err = io.Copy(saveFile, io.TeeReader(resp.Body, bar))
 	if err != nil {

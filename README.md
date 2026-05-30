@@ -4,6 +4,8 @@
 
 Cross-platform CLI for flashing images to drives.
 
+![demo](demo.gif)
+
 ---
 
 ## Install

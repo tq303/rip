@@ -23,7 +23,8 @@ func Write(image string, target string, megaBytes int) error {
 	defer file.Close()
 
 	start := time.Now()
-	bar := progress.Bar("b:", info.Size())
+	fmt.Printf("Buffering %s\n", image)
+	bar := progress.Bar(info.Size())
 
 	destination, err := os.OpenFile(target, os.O_WRONLY, 0)
 	if err != nil {
