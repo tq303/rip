@@ -1,11 +1,45 @@
 package drives
 
-import "os/exec"
+import (
+	"encoding/json"
+	"os/exec"
+)
+
+type linuxDevice struct {
+	Name string `json:"name"`
+	Size uint64 `json:"size"`
+	Type string `json:"type"`
+	Tran string `json:"tran"`
+	RM   bool   `json:"rm"`
+}
+
+type lsblk struct {
+	BlockDevices []linuxDevice `json:"blockdevices"`
+}
 
 func listLinux() ([]Drive, error) {
-	_, err := exec.Command("lsblk", "-J", "-o", "NAME,SIZE,TYPE,TRAN,RM").Output()
+	jsonOutput, err := exec.Command("lsblk", "-J", "-b", "-o", "NAME,SIZE,TYPE,TRAN,RM").Output()
 	if err != nil {
 		return nil, err
 	}
-	return nil, nil
+
+	var devices lsblk
+	err = json.Unmarshal(jsonOutput, &devices)
+	if err != nil {
+		return nil, err
+	}
+
+	options := []Drive{}
+
+	for _, device := range devices.BlockDevices {
+		if device.Type == "disk" && device.RM {
+			options = append(options, Drive{
+				Name: device.Name,
+				Path: "/dev/" + device.Name,
+				Size: device.Size,
+			})
+		}
+	}
+
+	return options, nil
 }

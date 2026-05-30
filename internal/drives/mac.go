@@ -9,11 +9,11 @@ import (
 )
 
 func listMac() ([]Drive, error) {
-	out, err := exec.Command("diskutil", "list", "-plist", "external").Output()
+	list, err := exec.Command("diskutil", "list", "-plist", "external").Output()
 	if err != nil {
 		return nil, nil
 	}
-	drives, err := parsePlist(out)
+	drives, err := parsePlist(list)
 	if err != nil {
 		return nil, err
 	}
@@ -31,14 +31,14 @@ func UnmountMacOs(name string) error {
 }
 
 func parseMediaName(data []byte) string {
-	dec := xml.NewDecoder(bytes.NewReader(data))
+	decode := xml.NewDecoder(bytes.NewReader(data))
 	var currentElement, lastKey string
 	for {
-		tok, err := dec.Token()
+		token, err := decode.Token()
 		if err != nil {
 			break
 		}
-		switch t := tok.(type) {
+		switch t := token.(type) {
 		case xml.StartElement:
 			currentElement = t.Name.Local
 		case xml.EndElement:
@@ -59,7 +59,7 @@ func parseMediaName(data []byte) string {
 }
 
 func parsePlist(data []byte) ([]Drive, error) {
-	dec := xml.NewDecoder(bytes.NewReader(data))
+	decode := xml.NewDecoder(bytes.NewReader(data))
 
 	var result []Drive
 	var currentKey, currentElement string
@@ -68,11 +68,11 @@ func parsePlist(data []byte) ([]Drive, error) {
 	depth, arrayDepth, dictDepth := 0, 0, 0
 
 	for {
-		tok, err := dec.Token()
+		token, err := decode.Token()
 		if err != nil {
 			break
 		}
-		switch t := tok.(type) {
+		switch t := token.(type) {
 		case xml.StartElement:
 			depth++
 			currentElement = t.Name.Local
