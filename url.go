@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/schollz/progressbar/v3"
+	"github.com/tq303/rip/internal/progress"
 )
 
 func changeFileOwner(fileName string) {
@@ -65,14 +65,14 @@ func downloadUrl(url string, outputFolder string) (string, error) {
 	}
 	defer saveFile.Close()
 
-	progress := progressbar.DefaultBytes(resp.ContentLength)
+	bar := progress.Bar("downloading", resp.ContentLength)
 
-	_, err = io.Copy(saveFile, io.TeeReader(resp.Body, progress))
+	_, err = io.Copy(saveFile, io.TeeReader(resp.Body, bar))
 	if err != nil {
 		os.Remove(saveFile.Name())
 	}
 
-	progress.Close()
+	bar.Close()
 
 	fmt.Printf("Downloaded in %s\n\n", time.Since(start).Round(time.Second))
 

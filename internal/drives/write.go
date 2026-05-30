@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/schollz/progressbar/v3"
+	"github.com/tq303/rip/internal/progress"
 	"github.com/tq303/rip/internal/state"
 )
 
@@ -23,7 +23,7 @@ func Write(image string, target string, megaBytes int) error {
 	defer file.Close()
 
 	start := time.Now()
-	progress := progressbar.DefaultBytes(info.Size(), "buffering")
+	bar := progress.Bar("buffering", info.Size())
 
 	destination, err := os.OpenFile(target, os.O_WRONLY, 0)
 	if err != nil {
@@ -38,12 +38,12 @@ func Write(image string, target string, megaBytes int) error {
 		os.Exit(1)
 	}
 
-	_, err = io.CopyBuffer(io.MultiWriter(destination, progress), file, buffer)
+	_, err = io.CopyBuffer(io.MultiWriter(destination, bar), file, buffer)
 	if err != nil {
 		return err
 	}
 
-	progress.Close()
+	bar.Close()
 	fmt.Print("\nWriting...")
 	destination.Sync()
 	fmt.Printf(" done in %s\n", time.Since(start).Round(time.Second))
