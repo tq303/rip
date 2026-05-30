@@ -5,7 +5,7 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"path"
+	"path/filepath"
 	"strconv"
 	"time"
 
@@ -34,13 +34,13 @@ func Url(url string, outputFolder string) (string, error) {
 	}
 	defer head.Body.Close()
 
-	fileName := path.Base(head.Request.URL.Path)
+	fileName := filepath.Base(head.Request.URL.Path)
 
 	if outputFolder == "" {
-		outputFolder = "/tmp/rip"
+		outputFolder = filepath.Join(os.TempDir(), "rip")
 	}
 
-	destination := path.Join(outputFolder, fileName)
+	destination := filepath.Join(outputFolder, fileName)
 
 	if localFile, err := os.Stat(destination); err == nil && localFile.Size() == head.ContentLength {
 		fmt.Printf("Using cached %s\n\n", destination)

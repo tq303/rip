@@ -25,11 +25,13 @@ func run(cmd *cobra.Command, args []string) error {
 	start := time.Now()
 	image := args[0]
 
+	var isTempDownload bool
 	if strings.HasPrefix(image, "http") {
 		outputFolder, err := cmd.Flags().GetString("output")
 		if err != nil {
 			return err
 		}
+		isTempDownload = outputFolder == ""
 
 		tempFile, err := download.Url(image, outputFolder)
 		if err != nil {
@@ -111,6 +113,11 @@ func run(cmd *cobra.Command, args []string) error {
 	if err := drives.Write(image, target.Path, buffer); err != nil {
 		return err
 	}
+
+	if isTempDownload {
+		os.Remove(image)
+	}
+
 	fmt.Printf("Total time: %s\n", time.Since(start).Round(time.Second))
 	return nil
 }
